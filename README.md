@@ -1,6 +1,9 @@
 # forge + safe
 
-Send batch of transactions from forge script to Safe Transaction Service. Supports Trezor, Ledger or Frame (for pk/mnemonic and it also supports Trezor/Ledger).
+Send batch of transactions from forge script to Safe Transaction Service.
+Supports Trezor, Ledger or Frame (for pk/mnemonic and it also supports Trezor/Ledger).
+
+Chains: Mainnet, Sepolia, Optimism, Arbitrum, BSC, Gnosis, Polygon, Polygon zkEVM, zkSync, Celo, Aurora
 
 ## Requirements
 
