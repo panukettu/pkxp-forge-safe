@@ -1,0 +1,18 @@
+{
+  "name": "forge-safe",
+  "module": "index.ts",
+  "type": "module",
+  "author": "panukettu",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@trezor/connect": "^9.2.2",
+    "eth-provider": "^0.13.6",
+    "glob": "^10.3.12",
+    "viem": "^2.9.25"
+  }
+}

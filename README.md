@@ -1,66 +1,83 @@
-## Foundry
+# forge + safe
 
-**Foundry is a blazing fast, portable and modular toolkit for Ethereum application development written in Rust.**
+Send batch of transactions from forge script to Safe Transaction Service. Supports Trezor, Ledger or Frame (for pk/mnemonic and it also supports Trezor/Ledger).
 
-Foundry consists of:
+## Requirements
 
--   **Forge**: Ethereum testing framework (like Truffle, Hardhat and DappTools).
--   **Cast**: Swiss army knife for interacting with EVM smart contracts, sending transactions and getting chain data.
--   **Anvil**: Local Ethereum node, akin to Ganache, Hardhat Network.
--   **Chisel**: Fast, utilitarian, and verbose solidity REPL.
+- **foundry**: required, obvious
 
-## Documentation
+```shell
+curl -L https://foundry.paradigm.xyz | bash
+```
 
-https://book.getfoundry.sh/
+- **bun**: required, for ffi-scripts
+
+```shell
+curl -fsSL https://bun.sh/install | bash
+```
+
+- **frame**: optional, required for pk/mnemonic
+
+https://frame.sh/
+
+- **just**: optional, buut better just use it
+
+https://github.com/casey/just
 
 ## Usage
 
-### Build
+### Setup
 
 ```shell
-$ forge build
+forge install && cp .env.example .env
 ```
 
-### Test
+- SIGNER_TYPE: 0 = Trezor, 1 = Frame, 2 = Ledger
+- SAFE_ADDRESS: Address of your safe.
+- SAFE_NETWORK: Matches what is configured in foundry.toml eg. "arbitrum".
+- SAFE_CHAIN_ID: Matches the above network.
+- MNEMONIC_PATH: Derivation path for directly using trezor/ledger.
+
+### Propose a script as batch
+
+This thing relies on using scripts with unique `--sig "myFunc()"` so do not use `run()`.
+
+Use current nonce
 
 ```shell
-$ forge test
+just safe-run Send safeTx
 ```
 
-### Format
+or
 
 ```shell
-$ forge fmt
+forge script Send --sig "safeTx()" && forge script SafeScript --sig "sendBatch(string)" safeTx --ffi -vvv
 ```
 
-### Gas Snapshots
+Use custom nonce
 
 ```shell
-$ forge snapshot
+just safe-run-nonce Send safeTx 111
 ```
 
-### Anvil
+or
 
 ```shell
-$ anvil
+forge script Send --sig "safeTx()" && forge script SafeScript --sig "sendBatch(string,uint256)" safeTx 111 --ffi -vvv
 ```
 
-### Deploy
+### Delete a proposed transaction batch
 
 ```shell
-$ forge script script/Counter.s.sol:CounterScript --rpc-url <your_rpc_url> --private-key <your_private_key>
+just safe-del 0xSAFE_TX_HASH
 ```
 
-### Cast
+or
 
 ```shell
-$ cast <subcommand>
+bun utils/ffi.ts deleteBatch 0xSAFE_TX_HASH
 ```
 
-### Help
+## Misc
 
-```shell
-$ forge --help
-$ anvil --help
-$ cast --help
-```
+- Look into `utils/ffi.ts` for other available commands using `bun utils/ffi.ts command ...args`
