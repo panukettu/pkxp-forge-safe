@@ -51,7 +51,7 @@ Only transactions broadcasted by `SAFE_ADDRESS` are included in the batch. If th
 Simulates and signs a batch without proposing:
 
 ```shell
-just safe-simulate Send safeTx
+just safe-dry Send safeTx
 ```
 
 You can later propose it using the output file written in `temp/sign`, eg:
