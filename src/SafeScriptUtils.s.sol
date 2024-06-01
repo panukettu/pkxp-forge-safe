@@ -4,7 +4,7 @@
 pragma solidity ^0.8.0;
 
 library Purify {
-    function BytesIn(
+    function bytesFunc(
         function(bytes memory) view fn
     ) internal pure returns (function(bytes memory) pure out) {
         assembly {
@@ -12,7 +12,7 @@ library Purify {
         }
     }
 
-    function Empty(
+    function emptyFunc(
         function() view fn
     ) internal pure returns (function() pure out) {
         assembly {
@@ -33,10 +33,16 @@ function logv(bytes memory _b) view {
 }
 
 function logp(bytes memory _p) pure {
-    Purify.BytesIn(logv)(_p);
+    Purify.bytesFunc(logv)(_p);
 }
 
-library Utils {
+function __revert(bytes memory _d) pure {
+    assembly {
+        revert(add(32, _d), mload(_d))
+    }
+}
+
+library SafeScriptUtils {
     function equals(
         string memory _a,
         string memory _b

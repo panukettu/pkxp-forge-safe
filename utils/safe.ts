@@ -136,7 +136,7 @@ export async function proposeBatch(filename?: string) {
 export async function deleteBatch(txHash?: Hex) {
   const safeTxHash = getArg(txHash)
   const [signature] = await signData(deleteData(safeTxHash))
-  const response = await fetch(`${SAFE_API}/transactions/${safeTxHash}/`, {
+  const response = await fetch(`${SAFE_API}/multisig-transactions/${safeTxHash}/`, {
     method: 'DELETE',
     headers: {
       'Content-Type': 'application/json',

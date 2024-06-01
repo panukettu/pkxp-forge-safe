@@ -4,7 +4,7 @@
 pragma solidity ^0.8.0;
 import {Script} from "forge-std/Script.sol";
 
-abstract contract Tx is Script {
+abstract contract SafeTxBase is Script {
     string private __mnemonicEnv = "MNEMONIC";
     address internal SAFE_ADDRESS;
 

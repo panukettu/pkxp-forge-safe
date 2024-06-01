@@ -1,13 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
-import {Tx} from "src/Tx.s.sol";
-import {Utils} from "src/Utils.s.sol";
+import {SafeTxBase} from "src/SafeTxBase.s.sol";
+import {SafeScriptUtils} from "src/SafeScriptUtils.s.sol";
 
-contract Send is Tx {
-    using Utils for *;
+contract Send is SafeTxBase {
+    using SafeScriptUtils for *;
     address internal account;
 
     function setUp() public virtual override {
+        useMnemonic("MNEMONIC"); // env var, not the actual mnemonic
         super.setUp();
         account = getAddr(0);
 

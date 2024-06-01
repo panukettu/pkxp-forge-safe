@@ -40,6 +40,7 @@ forge install && cp .env.example .env
 - SAFE_NETWORK: Matches what is configured in foundry.toml eg. "arbitrum".
 - SAFE_CHAIN_ID: Matches the above network.
 - MNEMONIC_PATH: Derivation path for directly using trezor/ledger.
+- MNEMONIC: Optional, some other wallet (use with eg. getAddr(0), see: SafeTxBase.sol)
 
 ### Propose a script as batch
 

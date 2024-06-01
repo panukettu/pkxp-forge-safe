@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 
-abstract contract MUltiSendAddr {
+abstract contract MultisendAddr {
     mapping(uint256 => address) internal _multisend;
 
     constructor() {

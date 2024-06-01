@@ -1,19 +1,14 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.0;
 import {Script} from "forge-std/Script.sol";
-import {Utils} from "./Utils.s.sol";
-import {MUltiSendAddr} from "./Multisends.s.sol";
+import {SafeScriptUtils, __revert} from "./SafeScriptUtils.s.sol";
+import {MultisendAddr} from "./MultisendAddr.s.sol";
 
 // solhint-disable
 
-function __revert(bytes memory _d) pure {
-    assembly {
-        revert(add(32, _d), mload(_d))
-    }
-}
+contract SafeScript is MultisendAddr, Script {
+    using SafeScriptUtils for *;
 
-contract SafeScript is MUltiSendAddr, Script {
-    using Utils for *;
     enum Operation {
         CALL,
         DELEGATECALL
@@ -173,18 +168,16 @@ contract SafeScript is MUltiSendAddr, Script {
                 (bool, bytes)
             );
             if (!successRevert) {
-                Utils.clg(
-                    "Batch simulation failed: ",
+                ("Batch simulation failed: ").clg(
                     vm.toString(successReturnData)
                 );
                 __revert(successReturnData);
             }
             if (successReturnData.length == 0) {
-                Utils.clg("Batch simulation successful with no return data.");
+                ("Batch simulation successful.").clg();
             } else {
-                Utils.clg(
-                    vm.toString(successReturnData),
-                    "Batch simulation successful with return data: "
+                ("Batch simulation successful, returned: ").clg(
+                    vm.toString(successReturnData)
                 );
             }
         }
