@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 import {Script} from "forge-std/Script.sol";
 import {SafeScriptUtils, __revert} from "./SafeScriptUtils.s.sol";
 import {MultisendAddr} from "./MultisendAddr.s.sol";
+import {Vm} from "../lib/forge-std/src/Vm.sol";
 
 // solhint-disable
 
@@ -71,7 +72,6 @@ contract SafeScript is MultisendAddr, Script {
     }
 
     function sendBatch(string memory broadcastId, uint256 nonce) public {
-        vm.createSelectFork(NETWORK);
         (, string memory fileName) = simulateAndSign(broadcastId, nonce);
         proposeBatch(fileName);
     }
@@ -86,10 +86,10 @@ contract SafeScript is MultisendAddr, Script {
             bytes memory sig,
             address signer
         ) = signBatch(simulate(broadcastId, nonce));
-        string.concat("Batch signed by: ", vm.toString(signer)).clg();
+        string.concat("Hash: ", vm.toString(txHash)).clg();
+        string.concat("Signer: ", vm.toString(signer)).clg();
         string.concat("Signature: ", vm.toString(sig)).clg();
-        string.concat("Safe Tx Hash: ", vm.toString(txHash)).clg();
-        string.concat("Output written to: ", file).clg();
+        string.concat("Output File: ", file).clg();
         return (txHash, file);
     }
 
@@ -97,6 +97,7 @@ contract SafeScript is MultisendAddr, Script {
         string memory broadcastId,
         uint256 nonce
     ) public returns (Batch memory batch) {
+        vm.createSelectFork(NETWORK);
         Payloads memory data = getPayloads(broadcastId, nonce);
         printPayloads(data);
         for (uint256 i; i < data.payloads.length; ++i) {
@@ -144,10 +145,11 @@ contract SafeScript is MultisendAddr, Script {
         bytes32 fromSafe = getSafeTxHash(batch);
         string
             .concat(
-                "Simulating in network: ",
+                "Simulating transaction in: ",
                 NETWORK,
-                "\n  chainId: ",
+                " (",
                 vm.toString(block.chainid),
+                ")",
                 "\n  safeTxHash: ",
                 vm.toString(fromSafe),
                 "\n  batch.txHash: ",
@@ -176,7 +178,7 @@ contract SafeScript is MultisendAddr, Script {
             if (successReturnData.length == 0) {
                 ("Batch simulation successful.").clg();
             } else {
-                ("Batch simulation successful, returned: ").clg(
+                ("Batch simulation successful:").clg(
                     vm.toString(successReturnData)
                 );
             }
@@ -254,7 +256,7 @@ contract SafeScript is MultisendAddr, Script {
             vm.toString(SAFE_ADDRESS),
             vm.toString(nonce)
         ];
-        return abi.decode(vm.ffi(argsFFI), (Payloads));
+        return abi.decode(_execFfi(argsFFI), (Payloads));
     }
 
     function signBatch(
@@ -278,7 +280,7 @@ contract SafeScript is MultisendAddr, Script {
         ];
 
         (fileName, signature, signer) = abi.decode(
-            vm.ffi(argsFFI),
+            _execFfi(argsFFI),
             (string, bytes, address)
         );
         txHash = batch.txHash;
@@ -288,7 +290,7 @@ contract SafeScript is MultisendAddr, Script {
         string memory fileName
     ) public returns (string memory response, string memory json) {
         argsFFI = ["bun", "utils/ffi.ts", "proposeBatch", fileName];
-        (response, json) = abi.decode(vm.ffi(argsFFI), (string, string));
+        (response, json) = abi.decode(_execFfi(argsFFI), (string, string));
 
         response.clg();
         json.clg();
@@ -313,7 +315,7 @@ contract SafeScript is MultisendAddr, Script {
 
     function deleteTx(bytes32 txHash) private {
         argsFFI = ["bun", "utils/ffi.ts", "deleteBatch", vm.toString(txHash)];
-        vm.ffi(argsFFI);
+        _execFfi(argsFFI);
     }
 
     function writeOutput(
@@ -342,7 +344,7 @@ contract SafeScript is MultisendAddr, Script {
             fileName,
             vm.serializeBytes(out, "payloads", abi.encode(payloads))
         );
-        string.concat("Output written to: ", fileName).clg();
+        string.concat("Output File: ", fileName).clg();
     }
 
     function printPayloads(Payloads memory payloads) public pure {
@@ -387,6 +389,16 @@ contract SafeScript is MultisendAddr, Script {
                 result = string.concat(result, arr[i], suffix);
             }
         }
+    }
+
+    function _execFfi(
+        string[] memory args
+    ) private returns (bytes memory result) {
+        Vm.FfiResult memory res = vm.tryFfi(args);
+        if (res.exitCode == 1) {
+            revert(abi.decode(res.stdout, (string)));
+        }
+        return res.stdout;
     }
 
     struct PayloadExtra {

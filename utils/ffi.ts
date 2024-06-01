@@ -1,3 +1,4 @@
+import type { Hex } from 'viem'
 import { deleteBatch, getSafePayloads, proposeBatch, safeSign, signBatch } from './safe'
 import { error, success } from './shared'
 import { signData, signHash, signMessage } from './signers'
@@ -29,10 +30,10 @@ if (command in commands) {
       // @ts-expect-error
       result = await result
     }
-    result ? success(result as unknown as string | any[]) : error(`No result for command ${command}`)
+    result ? success(result as unknown as string | Hex[] | Hex) : error(`No result for command ${command}`)
   } catch (e: unknown) {
     error(`${command} -> ${e}`)
   }
 } else {
-  error(`Unknown command ${command}`)
+  error(`Unknown command: ${command}`)
 }

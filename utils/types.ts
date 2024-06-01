@@ -8,6 +8,7 @@ export type AdditionalContract = {
   initCode: Hex
 }
 
+export type SuccessOutput = Hex | string | Hex[]
 export type Transaction = {
   type: Hex
   from: Address

@@ -1,5 +1,6 @@
 import path from 'path'
-import { parseAbiParameters } from 'viem'
+import { type Hex, encodeAbiParameters, parseAbiParameter, parseAbiParameters } from 'viem'
+import type { SuccessOutput } from './types'
 
 export const root = path.resolve(__dirname, '../')
 export const broadcastLocation = `${root}/**/broadcast`
@@ -12,31 +13,27 @@ export const getArg = <T>(arg?: T) => {
   return arg
 }
 
-export function success(str: string | any[]) {
-  if (!str?.length) process.exit(0)
+function out(str: SuccessOutput, err?: boolean): never {
+  const exitCode = err ? 1 : 0
+  if (!str.length) {
+    process.exit(exitCode)
+  }
+
   if (Array.isArray(str)) {
     process.stdout.write(str.join('\n'))
   } else {
-    if (str.startsWith('0x')) {
-      process.stdout.write(str)
-    } else {
-      process.stdout.write(Buffer.from(str).toString('utf-8'))
-    }
+    process.stdout.write(str)
   }
 
-  process.exit(0)
+  process.exit(exitCode)
 }
 
-export function error(str: string) {
-  if (!str?.length) process.exit(1)
+export function success(str: SuccessOutput): never {
+  out(str)
+}
 
-  if (str.startsWith('0x')) {
-    process.stdout.write(str)
-  } else {
-    process.stderr.write(Buffer.from(str).toString('utf-8'))
-  }
-  process.exitCode = 1
-  setTimeout(() => process.exit(1), 1)
+export function error(str: string): never {
+  out(encodeAbiParameters([parseAbiParameter('string')], [`(forge-safe) ${str}`]), true)
 }
 
 export enum Signer {
@@ -44,6 +41,7 @@ export enum Signer {
   Frame,
   Ledger,
 }
+
 export type Method = 'personal_sign' | 'eth_sign' | 'eth_signTypedData_v4'
 
 export const SAFE_API_V1 = {

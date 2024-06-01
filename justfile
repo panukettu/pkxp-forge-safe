@@ -5,6 +5,13 @@ set dotenv-load
 	echo "-> Signing $1" && \
 	bun utils/ffi.ts signMessage $1
 
+@safe-dry script func: 
+	echo "-> Simulating.." && \
+	forge script $1 --sig "$2()" --ffi -vvv && \
+	echo "-> $1.$2() ran successfully" && \
+	forge script SafeScript --sig "simulateAndSign(string,uint256)" $2 0 --ffi -vvv && \
+	echo "-> Success! run 'just safe-file SIGNED_BATCH_OUTPUT_FILENAME' to send it."
+
 @safe-run script func: 
 	forge script $1 --sig "$2()" --ffi -vvv && \
 	echo "-> $1.$2() ran successfully" && \

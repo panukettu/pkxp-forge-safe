@@ -18,15 +18,20 @@ contract Send is SafeTxBase {
     }
 
     function safeTx() public {
-        _doSomething();
-        _doSomethingElse();
+        prepareBatch(); // excluded (--broadcast separately)
+        _execBatch(); // included
     }
 
-    function _doSomething() internal broadcasted(SAFE_ADDRESS) {
+    function prepareBatch() public {
+        _prepareSomething();
+    }
+
+    function _execBatch() internal broadcasted(SAFE_ADDRESS) {
+        payable(account).transfer(0.0001 ether);
         payable(account).transfer(0.0001 ether);
     }
 
-    function _doSomethingElse() internal broadcasted(SAFE_ADDRESS) {
+    function _prepareSomething() internal broadcasted(account) {
         payable(account).transfer(0.0001 ether);
     }
 }

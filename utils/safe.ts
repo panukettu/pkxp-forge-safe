@@ -112,11 +112,25 @@ export async function signBatch() {
 }
 
 export async function proposeBatch(filename?: string) {
+  const isCLI = process.argv[4] != null
   const file = getArg(filename)
   const results = !file.startsWith(process.cwd()) ? glob.sync(`${signaturesPath}${file}.json`) : [file]
-  if (results.length !== 1) throw new Error(`Expected 1 file, got ${results.length} for ${file}`)
+
+  if (!results.length) {
+    if (isCLI) {
+      console.error(`No batch found with ${file}. Did you sign it?`)
+    } else {
+      throw new Error(`No batch found with ${file}. Did you simulate it?`)
+    }
+  }
+
+  if (results.length !== 1) {
+    const err = `Expected 1 file, got ${results.length} for ${file}. Ensure the function executed is unique.`
+    if (isCLI) return err
+    throw new Error(err)
+  }
+
   const tx = require(results[0])
-  const isCLI = process.argv[4] != null
 
   const response = await fetch(`${SAFE_API}/safes/${checksumAddress(tx.safe)}/multisig-transactions/`, {
     method: 'POST',
@@ -126,10 +140,8 @@ export async function proposeBatch(filename?: string) {
     body: JSON.stringify(tx),
   })
   const json = await response.json()
-  if (isCLI) {
-    console.log(json)
-    return
-  }
+
+  if (isCLI) return tx.contractTransactionHash as Hex
   return encodeAbiParameters(proposeOutput, [`${response.status}: ${response.statusText}`, json])
 }
 
@@ -155,18 +167,28 @@ export async function safeSign(txHash?: Hex): Promise<[Hex, Address]> {
 
 async function parseBroadcast(name: string, chainId: number, safeAddr: Address, nonce?: number) {
   const files = glob.sync(`${broadcastLocation}/**/${chainId}/dry-run/${name}-latest.json`)
-  if (files.length !== 1) throw new Error(`Expected 1 file, got ${files.length}`)
+
+  if (!files.length) {
+    throw new Error(`No transactions found with ${name}(). Did you forget to broadcast?`)
+  }
+  if (files.length > 1)
+    throw new Error(
+      `Expected 1 file, got ${files.length}. Did you execute multiple different script with function ${name}()?`,
+    )
   const data: BroadcastJSON = require(files[0])
 
-  if (!data.transactions?.length) {
-    throw new Error(`No transactions found for ${name} on chain ${chainId}`)
+  const transactions = data.transactions.filter(tx => tx.transaction.from.toLowerCase() === safeAddr.toLowerCase())
+  if (!transactions.length) {
+    throw new Error(
+      `No transactions found in ${name}() execution. Did you forget to broadcast with SAFE_ADDRESS? (SAFE_ADDRESS: ${safeAddr}, chainId: ${chainId})`,
+    )
   }
 
   const safeInfo: SafeInfoResponse = await fetch(`${SAFE_API}/safes/${checksumAddress(safeAddr)}`).then(res =>
     res.json(),
   )
 
-  const result = data.transactions.map(tx => {
+  const result = transactions.map(tx => {
     const to = tx.transaction.to
     const value = tx.transaction.value
     const gas = tx.transaction.gas
@@ -193,9 +215,9 @@ async function parseBroadcast(name: string, chainId: number, safeAddr: Address, 
   const metadata = {
     payloads: result.map(r => r.payload),
     extras: result.map(r => r.payloadInfo),
-    txCount: BigInt(data.transactions.length),
-    creationCount: BigInt(data.transactions.reduce((res, tx) => res + tx.additionalContracts.length, 0)),
-    totalGas: BigInt(data.transactions.reduce((acc, tx) => acc + Number(tx.transaction.gas), 0)),
+    txCount: BigInt(transactions.length),
+    creationCount: BigInt(transactions.reduce((res, tx) => res + tx.additionalContracts.length, 0)),
+    totalGas: BigInt(transactions.reduce((res, tx) => res + Number(tx.transaction.gas), 0)),
     safeNonce: BigInt(nonce ? nonce : safeInfo.nonce),
     safeVersion: safeInfo.version,
     timestamp: BigInt(data.timestamp),

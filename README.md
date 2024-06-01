@@ -27,9 +27,7 @@ https://frame.sh/
 
 https://github.com/casey/just
 
-## Usage
-
-### Setup
+## Setup
 
 ```shell
 forge install && cp .env.example .env
@@ -42,9 +40,27 @@ forge install && cp .env.example .env
 - MNEMONIC_PATH: Derivation path for directly using trezor/ledger.
 - MNEMONIC: Optional, some other wallet (use with eg. getAddr(0), see: SafeTxBase.sol)
 
-### Propose a script as batch
+## Usage
 
-This thing relies on using scripts with unique `--sig "myFunc()"` so do not use `run()`.
+This thing relies on unique function naming as it uses `--sig "myFunc()"` - do not use the default function `run()`.
+
+Only transactions broadcasted by `SAFE_ADDRESS` are included in the batch. If the batch depends on other transactions they need to be broadcasted separately.
+
+## Dry run
+
+Simulates and signs a batch without proposing:
+
+```shell
+just safe-simulate Send safeTx
+```
+
+You can later propose it using the output file written in `temp/sign`, eg:
+
+```shell
+just safe-file 1717240045-42161-signed-batch
+```
+
+### Propose a script as batch
 
 Use current nonce
 
