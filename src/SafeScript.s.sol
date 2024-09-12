@@ -8,7 +8,7 @@ import {Vm} from "../lib/forge-std/src/Vm.sol";
 // solhint-disable
 
 contract SafeScript is MultisendAddr, Script {
-    string internal _SAFE_SCRIPT_LOCATION = "lib/forge-safe/ts/ffi.ts";
+    string internal _SAFE_SCRIPT_LOCATION = "lib/pkxp-forge-safe/ts/ffi.ts";
 
     using SafeScriptUtils for *;
 
