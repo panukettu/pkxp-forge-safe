@@ -46,7 +46,7 @@ This thing relies on unique function naming as it uses `--sig "myFunc()"` - do n
 
 Only transactions broadcasted by `SAFE_ADDRESS` are included in the batch. If the batch depends on other transactions they need to be broadcasted separately.
 
-## Dry run
+### Dry run
 
 Simulates and signs a batch without proposing:
 
@@ -60,9 +60,9 @@ You can later propose it using the output file written in `temp/sign`, eg:
 just safe-file 1717240045-42161-signed-batch
 ```
 
-### Propose a script as batch
+### Simulate and propose
 
-Use current nonce
+With current nonce
 
 ```shell
 just safe-run Send safeTx
@@ -74,7 +74,7 @@ or
 forge script Send --sig "safeTx()" && forge script SafeScript --sig "sendBatch(string)" safeTx --ffi -vvv
 ```
 
-Use custom nonce
+With custom nonce
 
 ```shell
 just safe-run-nonce Send safeTx 111

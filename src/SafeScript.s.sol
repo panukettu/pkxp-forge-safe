@@ -8,6 +8,8 @@ import {Vm} from "../lib/forge-std/src/Vm.sol";
 // solhint-disable
 
 contract SafeScript is MultisendAddr, Script {
+    string internal SCRIPT_LOCATION = "lib/forge-safe/ts/ffi.ts";
+
     using SafeScriptUtils for *;
 
     enum Operation {
@@ -249,7 +251,7 @@ contract SafeScript is MultisendAddr, Script {
     ) public returns (Payloads memory) {
         argsFFI = [
             "bun",
-            "utils/ffi.ts",
+            SCRIPT_LOCATION,
             "getSafePayloads",
             broadcastId,
             vm.toString(block.chainid),
@@ -272,7 +274,7 @@ contract SafeScript is MultisendAddr, Script {
     {
         argsFFI = [
             "bun",
-            "utils/ffi.ts",
+            SCRIPT_LOCATION,
             "signBatch",
             vm.toString(SAFE_ADDRESS),
             vm.toString(CHAIN_ID),
@@ -289,7 +291,7 @@ contract SafeScript is MultisendAddr, Script {
     function proposeBatch(
         string memory fileName
     ) public returns (string memory response, string memory json) {
-        argsFFI = ["bun", "utils/ffi.ts", "proposeBatch", fileName];
+        argsFFI = ["bun", SCRIPT_LOCATION, "proposeBatch", fileName];
         (response, json) = abi.decode(_execFfi(argsFFI), (string, string));
 
         response.clg();
@@ -314,7 +316,7 @@ contract SafeScript is MultisendAddr, Script {
     }
 
     function deleteTx(bytes32 txHash) private {
-        argsFFI = ["bun", "utils/ffi.ts", "deleteBatch", vm.toString(txHash)];
+        argsFFI = ["bun", SCRIPT_LOCATION, "deleteBatch", vm.toString(txHash)];
         _execFfi(argsFFI);
     }
 
